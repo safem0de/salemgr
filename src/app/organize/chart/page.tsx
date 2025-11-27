@@ -1,32 +1,14 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import ReactFlow, { Background, Controls, Edge, Node, Position, ReactFlowProvider, Handle, type NodeTypes } from "reactflow"
+import ReactFlow, { Background, Controls, ReactFlowProvider } from "reactflow"
 import "reactflow/dist/style.css"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
 import { sidebarMenu } from "@/lib/sidebar-menu"
-import { organizeMock } from "@/mocks/organize"
-
-type NodeData = {
-  label: string
-  avatar?: string
-}
-
-const DEFAULT_AVATAR = "/avatars/default.png"
-const teamOptions = ["ทั้งหมด", ...new Set(organizeMock.representatives.map((rep) => rep.region))]
-
-const OrgNode = ({ data }: { data: NodeData }) => (
-  <div className="relative flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
-    <Handle type="target" position={Position.Top} className="!h-1.5 !w-1.5 !bg-blue-400" />
-    <img src={data.avatar ?? DEFAULT_AVATAR} alt={data.label} className="h-10 w-10 rounded-full border border-white shadow object-cover" />
-    <span className="text-sm font-semibold text-slate-900">{data.label}</span>
-    <Handle type="source" position={Position.Bottom} className="!h-1.5 !w-1.5 !bg-blue-400" />
-  </div>
-)
-
-const nodeTypes: NodeTypes = { default: OrgNode }
+import { nodeTypes } from "@/components/organize/org-node"
+import { buildOrganizeGraph, teamOptions } from "@/services/organize-graph"
 
 export default function OrganizeChartPage() {
   const { data: session } = useSession()
@@ -34,57 +16,7 @@ export default function OrganizeChartPage() {
   const [selectedTeam, setSelectedTeam] = useState<string>(teamOptions[0])
 
   const { nodes, edges } = useMemo(() => {
-    const reps = organizeMock.representatives.filter((rep) => selectedTeam === "ทั้งหมด" || rep.region === selectedTeam)
-    const supervisors = organizeMock.supervisors.filter(
-      (sup) => selectedTeam === "ทั้งหมด" || sup.region === selectedTeam
-    )
-
-    const supervisorNodes: Node<NodeData>[] = supervisors.map((sup, index) => ({
-      id: sup.id,
-      data: { label: sup.name, avatar: sup.avatar },
-      position: { x: 250 + index * 320, y: 60 },
-      style: {
-        border: "1px solid #cbd5f5",
-        background: "#e0edff",
-        borderRadius: 8,
-        padding: 10,
-        fontWeight: 600,
-      },
-      sourcePosition: Position.Bottom,
-    }))
-
-    const repNodes: Node<NodeData>[] = reps.map((rep, index) => ({
-      id: rep.id,
-      data: { label: rep.name, avatar: rep.avatar },
-      position: { x: 150 + index * 220, y: 230 },
-      style: {
-        border: "1px solid #d1d5db",
-        background: "#fff",
-        borderRadius: 8,
-        padding: 8,
-        fontSize: 12,
-      },
-      targetPosition: Position.Top,
-    }))
-
-    const repEdges = reps.reduce<Edge[]>((acc, rep) => {
-      const supervisor = organizeMock.supervisors.find((sup) => sup.region === rep.region)
-      if (supervisor) {
-        acc.push({
-          id: `${rep.id}-${supervisor.id}`,
-          source: supervisor.id,
-          target: rep.id,
-          animated: true,
-          style: { stroke: "#93c5fd" },
-        })
-      }
-      return acc
-    }, [])
-
-    return {
-      nodes: [...supervisorNodes, ...repNodes],
-      edges: repEdges,
-    }
+    return buildOrganizeGraph(selectedTeam)
   }, [selectedTeam])
 
   return (
@@ -111,7 +43,7 @@ export default function OrganizeChartPage() {
                   </p>
                 </div>
                 <label className="flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 shadow-sm">
-                  เลือกทีม / ภูมิภาค
+                  <span>เลือกทีม / ภูมิภาค</span>
                   <select
                     value={selectedTeam}
                     onChange={(event) => setSelectedTeam(event.target.value)}

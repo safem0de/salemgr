@@ -6,6 +6,7 @@ export type Member = {
   region: string
   teams: string[]
   active: boolean
+  avatar?: string
 }
 
 export const organizeMock = {
@@ -18,6 +19,7 @@ export const organizeMock = {
       region: "North",
       teams: ["Team A", "Team B"],
       active: true,
+      avatar: "/avatars/supaporn.png",
     },
     {
       id: "sup-02",
@@ -27,6 +29,7 @@ export const organizeMock = {
       region: "Central",
       teams: ["Team C"],
       active: true,
+      avatar: "/avatars/narumol.png",
     },
   ] satisfies Member[],
   representatives: [
@@ -38,6 +41,7 @@ export const organizeMock = {
       region: "North",
       teams: ["Team A"],
       active: true,
+      avatar: "/avatars/kittipong.png",
     },
     {
       id: "rep-02",
@@ -47,6 +51,7 @@ export const organizeMock = {
       region: "North",
       teams: ["Team A"],
       active: false,
+      avatar: "/avatars/sirinart.png",
     },
     {
       id: "rep-03",
@@ -56,6 +61,7 @@ export const organizeMock = {
       region: "Central",
       teams: ["Team C"],
       active: true,
+      avatar: "/avatars/thaveep.png",
     },
   ] satisfies Member[],
 }
