@@ -3,8 +3,18 @@
 import "react-big-calendar/lib/css/react-big-calendar.css"
 
 import { useMemo, useState } from "react"
-import { Calendar, type ToolbarProps, View, dateFnsLocalizer } from "react-big-calendar"
-import { format, parse, startOfWeek as startOfWeekFn, getDay, addDays, addHours } from "date-fns"
+import { Calendar, type Components, View, dateFnsLocalizer } from "react-big-calendar"
+import {
+  format,
+  parse,
+  startOfWeek as startOfWeekFn,
+  endOfWeek,
+  getDay,
+  addDays,
+  addHours,
+  addMonths,
+  startOfMonth,
+} from "date-fns"
 import { th } from "date-fns/locale"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
@@ -17,8 +27,8 @@ const locales = {
 
 const localizer = dateFnsLocalizer({
   format,
-  parse: (dateString, formatString) => parse(dateString, formatString, new Date(), { locale: th }),
-  startOfWeek: (date) => startOfWeekFn(date, { locale: th }),
+  parse: (dateString: string, formatString: string) => parse(dateString, formatString, new Date(), { locale: th }),
+  startOfWeek: (date: Date) => startOfWeekFn(date, { locale: th }),
   getDay,
   locales,
 })
@@ -34,7 +44,16 @@ type PlannerEvent = {
 
 const eventColors = ["bg-blue-100 border-blue-200 text-blue-900", "bg-rose-100 border-rose-200 text-rose-900", "bg-emerald-100 border-emerald-200 text-emerald-900"]
 
-function PlannerToolbar({ label, onNavigate, onView, view }: ToolbarProps) {
+type PlannerToolbarProps = {
+  label: string
+  currentDate: Date
+  currentView: View
+  onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void
+  onViewChange: (view: View) => void
+  onJumpToDate: (date: Date) => void
+}
+
+function PlannerToolbar({ label, onNavigate, onViewChange, currentDate, onJumpToDate, currentView }: Readonly<PlannerToolbarProps>) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div>
@@ -54,8 +73,8 @@ function PlannerToolbar({ label, onNavigate, onView, view }: ToolbarProps) {
           </button>
         </div>
         <select
-          value={view}
-          onChange={(event) => onView(event.target.value as View)}
+          value={currentView}
+          onChange={(event) => onViewChange(event.target.value as View)}
           className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="month">มุมมองเดือน</option>
@@ -63,44 +82,116 @@ function PlannerToolbar({ label, onNavigate, onView, view }: ToolbarProps) {
           <option value="day">มุมมองวัน</option>
           <option value="agenda">มุมมองรายการ</option>
         </select>
+        <label className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
+          <span>ไปยังเดือน</span>
+          <input
+            type="month"
+            value={format(currentDate, "yyyy-MM")}
+            onChange={(event) => {
+              if (!event.target.value) return
+              const newDate = parse(event.target.value, "yyyy-MM", new Date())
+              onJumpToDate(newDate)
+            }}
+            className="rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        </label>
       </div>
       <p className="w-full text-center text-lg font-semibold text-slate-800">{label}</p>
     </div>
   )
 }
 
+const hiddenToolbar = () => null
+
+function getViewLabel(currentDate: Date, view: View) {
+  if (view === "month") {
+    return format(currentDate, "MMMM yyyy", { locale: th })
+  }
+  if (view === "week" || view === "agenda") {
+    const start = startOfWeekFn(currentDate, { locale: th })
+    const end = endOfWeek(currentDate, { locale: th })
+    return `${format(start, "d MMM", { locale: th })} - ${format(end, "d MMM yyyy", { locale: th })}`
+  }
+  return format(currentDate, "EEE d MMM yyyy", { locale: th })
+}
+
 export default function PlannerCalendarPage() {
   const { data: session } = useSession()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [view, setView] = useState<View>("month")
+  const [currentDate, setCurrentDate] = useState(() => new Date())
+  const [label, setLabel] = useState(() => getViewLabel(new Date(), "month"))
+
+  const handleToolbarNavigate = (action: "PREV" | "NEXT" | "TODAY") => {
+    setCurrentDate((prev) => {
+      let nextDate: Date
+
+      if (action === "TODAY") {
+        nextDate = new Date()
+      } else if (view === "month") {
+        nextDate = addMonths(prev, action === "NEXT" ? 1 : -1)
+      } else {
+        const deltaDays = view === "week" || view === "agenda" ? 7 : 1
+        nextDate = addDays(prev, action === "NEXT" ? deltaDays : -deltaDays)
+      }
+
+      setLabel(getViewLabel(nextDate, view))
+      return nextDate
+    })
+  }
+
+  const handleJumpToDate = (date: Date) => {
+    setCurrentDate(date)
+    setLabel(getViewLabel(date, view))
+  }
 
   const plannerEvents: PlannerEvent[] = useMemo(() => {
-    const base = new Date()
-    base.setHours(9, 0, 0, 0)
+    const templates = [
+      { offset: 1, duration: 2, title: "Kickoff แคมเปญ" },
+      { offset: 3, duration: 1, title: "ทีมเซลล์ Training" },
+      { offset: 7, duration: 3, title: "ประชุมพาร์ทเนอร์" },
+      { offset: 9, duration: 1, title: "เปิดตัวโปรโมชัน" },
+      { offset: 12, duration: 2, title: "Roadshow หน้าร้าน" },
+      { offset: 15, duration: 4, title: "Review แนวทาง" },
+      { offset: 20, duration: 1, title: "สรุปรายงาน" },
+    ]
 
-    const createEvent = (offsetDays: number, durationHours: number, title: string): PlannerEvent => {
-      const start = addDays(base, offsetDays)
-      const end = addHours(start, durationHours)
-      const color = eventColors[offsetDays % eventColors.length]
-      return {
-        id: `${offsetDays}-${title}`,
-        title,
-        start,
-        end,
-        color,
+    const events: PlannerEvent[] = []
+    const startMonth = startOfMonth(new Date())
+
+    for (let monthOffset = -2; monthOffset <= 2; monthOffset += 1) {
+      const monthBase = addMonths(startMonth, monthOffset)
+      let index = 0
+      for (const template of templates) {
+        const start = addDays(monthBase, template.offset + index)
+        start.setHours(9 + (index % 4) * 2, 0, 0, 0)
+        const end = addHours(new Date(start), template.duration)
+        const color = eventColors[(monthOffset + index + eventColors.length) % eventColors.length]
+
+        events.push({
+          id: `${monthOffset}-${template.title}-${index}`,
+          title: template.title,
+          start: new Date(start),
+          end,
+          color,
+        })
+        index += 1
       }
     }
 
-    return [
-      createEvent(0, 2, "Kickoff แคมเปญ"),
-      createEvent(1, 1, "ทีมเซลล์ Training"),
-      createEvent(3, 3, "ประชุมพาร์ทเนอร์"),
-      createEvent(5, 1, "เปิดตัวโปรโมชัน"),
-      createEvent(8, 2, "Roadshow หน้าร้าน"),
-      createEvent(10, 4, "Review แนวทาง"),
-      createEvent(15, 1, "สรุปรายงานกลางเดือน"),
-    ]
+    return events
   }, [])
+
+  const calendarComponents = useMemo<Components<PlannerEvent>>(
+    () => ({
+      toolbar: hiddenToolbar,
+    }),
+    []
+  )
+
+  const updateLabel = (date: Date, nextView: View) => {
+    setLabel(getViewLabel(date, nextView))
+  }
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -117,29 +208,52 @@ export default function PlannerCalendarPage() {
 
         <main className="flex-1 p-8 overflow-y-auto">
           {session ? (
-            <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+              <PlannerToolbar
+                label={label}
+                currentDate={currentDate}
+                currentView={view}
+                onNavigate={(action) => {
+                  handleToolbarNavigate(action)
+                }}
+                onViewChange={(nextView) => {
+                  setView(nextView)
+                  updateLabel(currentDate, nextView)
+                }}
+                onJumpToDate={(date) => {
+                  handleJumpToDate(date)
+                  updateLabel(date, view)
+                }}
+              />
               <Calendar
+                date={currentDate}
+                onNavigate={(newDate) => {
+                  setCurrentDate(newDate)
+                  updateLabel(newDate, view)
+                }}
                 view={view}
-                onView={(next) => setView(next)}
+                onView={(next) => {
+                  setView(next)
+                  updateLabel(currentDate, next)
+                }}
                 localizer={localizer}
                 culture="th"
                 events={plannerEvents}
                 startAccessor="start"
                 endAccessor="end"
                 style={{ minHeight: 650 }}
-                components={{
-                  toolbar: (props) => <PlannerToolbar {...props} view={view} />,
-                }}
                 popup
                 selectable
+                toolbar={false}
+                components={calendarComponents}
                 longPressThreshold={50}
-                eventPropGetter={(event) => ({
+                eventPropGetter={(event: PlannerEvent) => ({
                   className: `border ${event.color} rounded-md px-2`,
                 })}
                 formats={{
-                  agendaDateFormat: (date) => format(date, "EEE d MMM", { locale: th }),
-                  dayHeaderFormat: (date) => format(date, "EEE d MMM", { locale: th }),
-                  dayRangeHeaderFormat: ({ start, end }) =>
+                  agendaDateFormat: (date: Date) => format(date, "EEE d MMM", { locale: th }),
+                  dayHeaderFormat: (date: Date) => format(date, "EEE d MMM", { locale: th }),
+                  dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
                     `${format(start, "d MMM", { locale: th })} - ${format(end, "d MMM yyyy", { locale: th })}`,
                 }}
                 messages={{
