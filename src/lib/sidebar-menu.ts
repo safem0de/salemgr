@@ -9,8 +9,20 @@ export const sidebarMenu: SidebarMenuItem[] = [
     label: "Sale Planner",
     icon: "🗂️",
     children: [
-      { id: "planner-create", label: "สร้างแผน (Create)", href: "/planner/create" },
-      { id: "planner-edit", label: "แก้ไขแผน (Edit)" },
+      {
+        id: "planner-view",
+        label: "ดูแผน (Calendar)",
+        href: "/planner",
+      },
+      {
+        id: "planner-create",
+        label: "สร้างแผน (Create)",
+        href: "/planner/create"
+      },
+      {
+        id: "planner-edit",
+        label: "แก้ไขแผน (Edit)"
+      },
     ],
   },
   { id: "reports", label: "รายงาน", icon: "📈" },
