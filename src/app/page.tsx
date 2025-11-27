@@ -1,28 +1,40 @@
 "use client"
 
+import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
 
 const sidebarMenu = [
-  { id: "dashboard", label: "แดชบอร์ด" },
-  { id: "customers", label: "ลูกค้า" },
-  { id: "orders", label: "คำสั่งซื้อ" },
-  { id: "reports", label: "รายงาน" },
-  { id: "settings", label: "ตั้งค่า" },
+  { id: "dashboard", label: "แดชบอร์ด", icon: "📊" },
+  { id: "customers", label: "ลูกค้า", icon: "👥" },
+  { id: "orders", label: "คำสั่งซื้อ", icon: "🧾" },
+  { id: "reports", label: "รายงาน", icon: "📈" },
+  { id: "settings", label: "ตั้งค่า", icon: "⚙️" },
 ]
 
 export default function Home() {
   const { data: session } = useSession()
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-lg bg-blue-100 text-blue-700 font-semibold flex items-center justify-center text-xl">
-            SM
-          </div>
-          <div>
-            <p className="text-lg font-semibold text-slate-900">Sale Manager</p>
-            <p className="text-sm text-slate-500">Backoffice Control Panel</p>
+        <div className="flex items-center gap-4">
+          <button
+            aria-label="Toggle sidebar"
+            className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+          >
+            {isSidebarCollapsed ? "☰" : "⟡"}
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-lg bg-blue-100 text-blue-700 font-semibold flex items-center justify-center text-xl">
+              SM
+            </div>
+            <div>
+              <p className="text-lg font-semibold text-slate-900">Sale Manager</p>
+              <p className="text-sm text-slate-500">Backoffice Control Panel</p>
+            </div>
           </div>
         </div>
 
@@ -52,21 +64,29 @@ export default function Home() {
       </nav>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 bg-slate-900 text-white flex flex-col">
+        <aside
+          className={`${
+            isSidebarCollapsed ? "w-20" : "w-64"
+          } bg-slate-900 text-white flex flex-col transition-all duration-200 ease-in-out`}
+        >
           <div className="px-6 py-5 border-b border-slate-800 text-xs uppercase tracking-[0.2em] text-slate-400">
-            เมนูหลัก
+            <span className={isSidebarCollapsed ? "sr-only" : ""}>เมนูหลัก</span>
           </div>
           <ul className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
             {sidebarMenu.map((item) => (
               <li key={item.id}>
-                <button className="w-full text-left px-3 py-2 rounded-md text-sm font-medium text-slate-100 hover:bg-slate-800">
-                  {item.label}
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-100 hover:bg-slate-800">
+                  <span aria-hidden className="text-lg">{item.icon}</span>
+                  <span className={isSidebarCollapsed ? "hidden" : "block"}>{item.label}</span>
                 </button>
               </li>
             ))}
           </ul>
           <div className="px-6 py-5 border-t border-slate-800 text-sm text-slate-300">
-            {session ? "พร้อมใช้งาน" : "กรุณาเข้าสู่ระบบ"}
+            <span className={isSidebarCollapsed ? "hidden" : "inline"}>
+              {session ? "พร้อมใช้งาน" : "กรุณาเข้าสู่ระบบ"}
+            </span>
+            {isSidebarCollapsed && <span className="font-semibold text-green-300">{session ? "✓" : "!"}</span>}
           </div>
         </aside>
 
