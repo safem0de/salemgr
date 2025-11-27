@@ -2,6 +2,8 @@
 
 import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
+import { Navbar } from "@/components/navbar"
+import { Sidebar } from "@/components/sidebar"
 
 const sidebarMenu = [
   { id: "dashboard", label: "แดชบอร์ด", icon: "📊" },
@@ -17,78 +19,16 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
-      <nav className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-4">
-          <button
-            aria-label="Toggle sidebar"
-            className="rounded-md border border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-          >
-            {isSidebarCollapsed ? "☰" : "⟡"}
-          </button>
-
-          <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-lg bg-blue-100 text-blue-700 font-semibold flex items-center justify-center text-xl">
-              SM
-            </div>
-            <div>
-              <p className="text-lg font-semibold text-slate-900">Sale Manager</p>
-              <p className="text-sm text-slate-500">Backoffice Control Panel</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          {session ? (
-            <>
-              <div className="text-right">
-                <p className="text-sm font-medium text-slate-900">{session.user?.name}</p>
-                <p className="text-xs text-slate-500">{session.user?.email ?? "ไม่มีอีเมล"}</p>
-              </div>
-              <button
-                className="rounded-md border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                onClick={() => signOut()}
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <button
-              className="rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-blue-500"
-              onClick={() => signIn("keycloak")}
-            >
-              Login
-            </button>
-          )}
-        </div>
-      </nav>
+      <Navbar
+        session={session}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        onLogin={() => signIn("keycloak")}
+        onLogout={() => signOut()}
+      />
 
       <div className="flex flex-1 overflow-hidden">
-        <aside
-          className={`${
-            isSidebarCollapsed ? "w-20" : "w-64"
-          } bg-slate-900 text-white flex flex-col transition-all duration-200 ease-in-out`}
-        >
-          <div className="px-6 py-5 border-b border-slate-800 text-xs uppercase tracking-[0.2em] text-slate-400">
-            <span className={isSidebarCollapsed ? "sr-only" : ""}>เมนูหลัก</span>
-          </div>
-          <ul className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
-            {sidebarMenu.map((item) => (
-              <li key={item.id}>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-100 hover:bg-slate-800">
-                  <span aria-hidden className="text-lg">{item.icon}</span>
-                  <span className={isSidebarCollapsed ? "hidden" : "block"}>{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-          <div className="px-6 py-5 border-t border-slate-800 text-sm text-slate-300">
-            <span className={isSidebarCollapsed ? "hidden" : "inline"}>
-              {session ? "พร้อมใช้งาน" : "กรุณาเข้าสู่ระบบ"}
-            </span>
-            {isSidebarCollapsed && <span className="font-semibold text-green-300">{session ? "✓" : "!"}</span>}
-          </div>
-        </aside>
+        <Sidebar items={sidebarMenu} isCollapsed={isSidebarCollapsed} hasSession={Boolean(session)} />
 
         <main className="flex-1 p-8 overflow-y-auto">
           {session ? (
