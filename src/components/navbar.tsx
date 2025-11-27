@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import type { Session } from "next-auth"
 
 type NavbarProps = {
@@ -28,7 +29,10 @@ export function Navbar({
           {isSidebarCollapsed ? "☰" : "⟡"}
         </button>
 
-        <div className="flex items-center gap-3">
+        <Link
+          href="/"
+          className="flex items-center gap-3 rounded-lg px-2 py-1 transition hover:bg-slate-100 focus-visible:outline focus-visible:outline-blue-500"
+        >
           <div className="h-12 w-12 rounded-lg bg-blue-100 text-blue-700 font-semibold flex items-center justify-center text-xl">
             SM
           </div>
@@ -36,7 +40,7 @@ export function Navbar({
             <p className="text-lg font-semibold text-slate-900">Sale Manager</p>
             <p className="text-sm text-slate-500">Backoffice Control Panel</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">

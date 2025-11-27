@@ -4,14 +4,7 @@ import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
-
-const sidebarMenu = [
-  { id: "dashboard", label: "แดชบอร์ด", icon: "📊" },
-  { id: "customers", label: "ลูกค้า", icon: "👥" },
-  { id: "orders", label: "คำสั่งซื้อ", icon: "🧾" },
-  { id: "reports", label: "รายงาน", icon: "📈" },
-  { id: "settings", label: "ตั้งค่า", icon: "⚙️" },
-]
+import { sidebarMenu } from "@/lib/sidebar-menu"
 
 export default function Home() {
   const { data: session } = useSession()

@@ -1,13 +1,10 @@
 "use client"
 
-type MenuItem = {
-  id: string
-  label: string
-  icon: string
-}
+import type { SidebarMenuItem } from "@/types/sidebar"
+import { SidebarMenuEntry } from "@/components/sidebar-menu-entry"
 
 type SidebarProps = {
-  items: MenuItem[]
+  items: SidebarMenuItem[]
   isCollapsed: boolean
   hasSession: boolean
 }
@@ -24,14 +21,7 @@ export function Sidebar({ items, isCollapsed, hasSession }: Readonly<SidebarProp
       </div>
       <ul className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {items.map((item) => (
-          <li key={item.id}>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-slate-100 hover:bg-slate-800">
-              <span aria-hidden className="text-lg">
-                {item.icon}
-              </span>
-              <span className={isCollapsed ? "hidden" : "block"}>{item.label}</span>
-            </button>
-          </li>
+          <SidebarMenuEntry key={item.id} item={item} isCollapsed={isCollapsed} />
         ))}
       </ul>
       <div className="px-6 py-5 border-t border-slate-800 text-sm text-slate-300">
