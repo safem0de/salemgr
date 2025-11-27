@@ -4,17 +4,7 @@ import "react-big-calendar/lib/css/react-big-calendar.css"
 
 import { useMemo, useState } from "react"
 import { Calendar, type Components, View, dateFnsLocalizer } from "react-big-calendar"
-import {
-  format,
-  parse,
-  startOfWeek as startOfWeekFn,
-  endOfWeek,
-  getDay,
-  addDays,
-  addHours,
-  addMonths,
-  startOfMonth,
-} from "date-fns"
+import { format, parse, startOfWeek as startOfWeekFn, endOfWeek, getDay, addDays, addMonths } from "date-fns"
 import { th } from "date-fns/locale"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
@@ -33,73 +23,8 @@ const localizer = dateFnsLocalizer({
   locales,
 })
 
-type PlannerEvent = {
-  id: string
-  title: string
-  start: Date
-  end: Date
-  allDay?: boolean
-  color: string
-}
-
-const eventColors = ["bg-blue-100 border-blue-200 text-blue-900", "bg-rose-100 border-rose-200 text-rose-900", "bg-emerald-100 border-emerald-200 text-emerald-900"]
-
-type PlannerToolbarProps = {
-  label: string
-  currentDate: Date
-  currentView: View
-  onNavigate: (action: "PREV" | "NEXT" | "TODAY") => void
-  onViewChange: (view: View) => void
-  onJumpToDate: (date: Date) => void
-}
-
-function PlannerToolbar({ label, onNavigate, onViewChange, currentDate, onJumpToDate, currentView }: Readonly<PlannerToolbarProps>) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <p className="text-3xl font-semibold text-slate-900">ปฏิทินแผนการขาย</p>
-        <p className="text-slate-600">ดูรายการแผนในเดือนหรือสัปดาห์ พร้อมจัดการตารางให้เหมือน Google Calendar</p>
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex items-center rounded-md border border-slate-200 bg-white shadow-sm">
-          <button className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("PREV")}>
-            ← ก่อนหน้า
-          </button>
-          <button className="border-x border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("TODAY")}>
-            วันนี้
-          </button>
-          <button className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("NEXT")}>
-            ถัดไป →
-          </button>
-        </div>
-        <select
-          value={currentView}
-          onChange={(event) => onViewChange(event.target.value as View)}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-        >
-          <option value="month">มุมมองเดือน</option>
-          <option value="week">มุมมองสัปดาห์</option>
-          <option value="day">มุมมองวัน</option>
-          <option value="agenda">มุมมองรายการ</option>
-        </select>
-        <label className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
-          <span>ไปยังเดือน</span>
-          <input
-            type="month"
-            value={format(currentDate, "yyyy-MM")}
-            onChange={(event) => {
-              if (!event.target.value) return
-              const newDate = parse(event.target.value, "yyyy-MM", new Date())
-              onJumpToDate(newDate)
-            }}
-            className="rounded-md border border-slate-200 px-2 py-1 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        </label>
-      </div>
-      <p className="w-full text-center text-lg font-semibold text-slate-800">{label}</p>
-    </div>
-  )
-}
+import { PlannerToolbar } from "@/components/planner/planner-toolbar"
+import { type PlannerEvent, usePlannerEvents } from "@/components/planner/use-planner-events"
 
 const hiddenToolbar = () => null
 
@@ -145,42 +70,7 @@ export default function PlannerCalendarPage() {
     setLabel(getViewLabel(date, view))
   }
 
-  const plannerEvents: PlannerEvent[] = useMemo(() => {
-    const templates = [
-      { offset: 1, duration: 2, title: "Kickoff แคมเปญ" },
-      { offset: 3, duration: 1, title: "ทีมเซลล์ Training" },
-      { offset: 7, duration: 3, title: "ประชุมพาร์ทเนอร์" },
-      { offset: 9, duration: 1, title: "เปิดตัวโปรโมชัน" },
-      { offset: 12, duration: 2, title: "Roadshow หน้าร้าน" },
-      { offset: 15, duration: 4, title: "Review แนวทาง" },
-      { offset: 20, duration: 1, title: "สรุปรายงาน" },
-    ]
-
-    const events: PlannerEvent[] = []
-    const startMonth = startOfMonth(new Date())
-
-    for (let monthOffset = -2; monthOffset <= 2; monthOffset += 1) {
-      const monthBase = addMonths(startMonth, monthOffset)
-      let index = 0
-      for (const template of templates) {
-        const start = addDays(monthBase, template.offset + index)
-        start.setHours(9 + (index % 4) * 2, 0, 0, 0)
-        const end = addHours(new Date(start), template.duration)
-        const color = eventColors[(monthOffset + index + eventColors.length) % eventColors.length]
-
-        events.push({
-          id: `${monthOffset}-${template.title}-${index}`,
-          title: template.title,
-          start: new Date(start),
-          end,
-          color,
-        })
-        index += 1
-      }
-    }
-
-    return events
-  }, [])
+  const plannerEvents = usePlannerEvents()
 
   const calendarComponents = useMemo<Components<PlannerEvent>>(
     () => ({
