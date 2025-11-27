@@ -1,9 +1,9 @@
 import type { SidebarMenuItem } from "@/types/sidebar"
 
 export const sidebarMenu: SidebarMenuItem[] = [
-  { id: "dashboard", label: "แดชบอร์ด", icon: "📊" },
-  { id: "customers", label: "ลูกค้า", icon: "👥" },
-  { id: "orders", label: "คำสั่งซื้อ", icon: "🧾" },
+  { id: "dashboard", label: "Dashboard", icon: "📊" },
+  { id: "customers", label: "Customers", icon: "👥" },
+  { id: "orders", label: "Orders", icon: "🧾" },
   {
     id: "planner",
     label: "Sale Planner",
@@ -22,6 +22,27 @@ export const sidebarMenu: SidebarMenuItem[] = [
       {
         id: "planner-edit",
         label: "แก้ไขแผน (Edit)"
+      },
+    ],
+  },
+  {
+    id: "organize",
+    label: "Sale Organize",
+    icon: "🧩",
+    children: [
+      {
+        id: "organize-supervisor",
+        label: "Supervisor & Sale-Rep",
+        href: "/organize",
+      },
+      {
+        id: "organize-chart",
+        label: "Organize Chart",
+        href: "/organize/chart",
+      },
+      {
+        id: "organize-permission",
+        label: "จัดการสิทธิ (Permissions)",
       },
     ],
   },
