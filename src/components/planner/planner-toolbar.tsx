@@ -29,27 +29,30 @@ export function PlannerToolbar({
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex items-center rounded-md border border-slate-200 bg-white shadow-sm">
-          <button className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("PREV")}>
+          <button className="h-11 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("PREV")}>
             ← ก่อนหน้า
           </button>
-          <button className="border-x border-slate-200 px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("TODAY")}>
+          <button
+            className="h-11 border-x border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            onClick={() => onNavigate("TODAY")}
+          >
             วันนี้
           </button>
-          <button className="px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("NEXT")}>
+          <button className="h-11 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50" onClick={() => onNavigate("NEXT")}>
             ถัดไป →
           </button>
         </div>
         <select
           value={currentView}
           onChange={(event) => onViewChange(event.target.value as View)}
-          className="rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="h-11 rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="month">มุมมองเดือน</option>
           <option value="week">มุมมองสัปดาห์</option>
           <option value="day">มุมมองวัน</option>
           <option value="agenda">มุมมองรายการ</option>
         </select>
-        <label className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm">
+        <label className="flex h-11 items-center gap-2 rounded-md border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm">
           <span>ไปยังเดือน</span>
           <input
             type="month"
