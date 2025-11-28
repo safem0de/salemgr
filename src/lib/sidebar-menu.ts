@@ -2,7 +2,15 @@ import type { SidebarMenuItem } from "@/types/sidebar"
 
 export const sidebarMenu: SidebarMenuItem[] = [
   { id: "dashboard", label: "Dashboard", icon: "📊" },
-  { id: "customers", label: "Customers", icon: "👥" },
+  {
+    id: "customers",
+    label: "Customers",
+    icon: "👥",
+    children: [
+      { id: "customers-list", label: "Customer List", href: "/customers" },
+      { id: "customers-new", label: "Add New Customer", href: "/customers/new" },
+    ],
+  },
   { id: "orders", label: "Orders", icon: "🧾" },
   {
     id: "planner",
