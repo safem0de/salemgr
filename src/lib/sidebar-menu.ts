@@ -39,6 +39,11 @@ export const sidebarMenu: SidebarMenuItem[] = [
     icon: "🧩",
     children: [
       {
+        id: "user",
+        label: "Users",
+        href: "/users",
+      },
+      {
         id: "organize-supervisor",
         label: "Supervisor & Sale-Rep",
         href: "/organize",
