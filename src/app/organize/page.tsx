@@ -4,11 +4,13 @@ import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
+import { ProtectedShell, SessionLoading } from "@/components/session-loading"
+import { LoginCallout } from "@/components/login-callout"
 import { sidebarMenu } from "@/lib/sidebar-menu"
 import { organizeMock, permissionMatrix } from "@/mocks/organize"
 
 export default function SaleOrganizePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [activeTab, setActiveTab] = useState<"supervisor" | "representative">("supervisor")
 
@@ -28,7 +30,17 @@ export default function SaleOrganizePage() {
         <Sidebar items={sidebarMenu} isCollapsed={isSidebarCollapsed} hasSession={Boolean(session)} />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          {session ? (
+          <ProtectedShell
+            isLoading={status === "loading"}
+            isAuthenticated={Boolean(session)}
+            loadingView={<SessionLoading />}
+            unauthenticatedView={
+              <LoginCallout
+                title="เข้าสู่ระบบเพื่อจัดการ Sale Organize"
+                description="ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถบริหาร Supervisor และ Sale Rep ได้"
+              />
+            }
+          >
             <section className="space-y-6">
               <header className="flex items-center justify-between">
                 <div>
@@ -162,20 +174,7 @@ export default function SaleOrganizePage() {
                 </div>
               </div>
             </section>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <p className="text-3xl font-semibold text-slate-900">เข้าสู่ระบบเพื่อจัดการ Sale Organize</p>
-              <p className="mt-3 text-slate-600 max-w-lg">
-                ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถบริหาร Supervisor และ Sale Rep ได้
-              </p>
-              <button
-                className="mt-8 rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow hover:bg-blue-500"
-                onClick={() => signIn("keycloak")}
-              >
-                Login with Keycloak
-              </button>
-            </div>
-          )}
+          </ProtectedShell>
         </main>
       </div>
     </div>

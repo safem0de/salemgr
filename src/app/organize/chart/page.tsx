@@ -6,12 +6,14 @@ import "reactflow/dist/style.css"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
+import { ProtectedShell, SessionLoading } from "@/components/session-loading"
+import { LoginCallout } from "@/components/login-callout"
 import { sidebarMenu } from "@/lib/sidebar-menu"
 import { nodeTypes } from "@/components/organize/org-node"
 import { buildOrganizeGraph, teamOptions } from "@/services/organize-graph"
 
 export default function OrganizeChartPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [selectedTeam, setSelectedTeam] = useState<string>(teamOptions[0])
 
@@ -33,7 +35,18 @@ export default function OrganizeChartPage() {
         <Sidebar items={sidebarMenu} isCollapsed={isSidebarCollapsed} hasSession={Boolean(session)} />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          {session ? (
+          <ProtectedShell
+            isLoading={status === "loading"}
+            isAuthenticated={Boolean(session)}
+            loadingView={<SessionLoading />}
+            unauthenticatedView={
+              <LoginCallout
+                title="เข้าสู่ระบบเพื่อดู Organize Chart"
+                description="ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถดูความสัมพันธ์ของ Supervisor และ Sale Rep ได้"
+              />
+            }
+          >
+            {session && (
             <section className="space-y-6">
               <header className="flex flex-wrap items-center justify-between gap-4">
                 <div>
@@ -75,21 +88,8 @@ export default function OrganizeChartPage() {
                 </ReactFlowProvider>
               </div>
             </section>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <p className="text-3xl font-semibold text-slate-900">เข้าสู่ระบบเพื่อดู Organize Chart</p>
-              <p className="mt-3 text-slate-600 max-w-lg">
-                ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถดูความสัมพันธ์ของ Supervisor และ Sale Rep
-                ได้
-              </p>
-              <button
-                className="mt-8 rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow hover:bg-blue-500"
-                onClick={() => signIn("keycloak")}
-              >
-                Login with Keycloak
-              </button>
-            </div>
-          )}
+            )}
+          </ProtectedShell>
         </main>
       </div>
     </div>

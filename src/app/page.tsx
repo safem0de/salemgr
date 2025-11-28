@@ -4,10 +4,12 @@ import { useState } from "react"
 import { signIn, signOut, useSession } from "next-auth/react"
 import { Navbar } from "@/components/navbar"
 import { Sidebar } from "@/components/sidebar"
+import { ProtectedShell, SessionLoading } from "@/components/session-loading"
+import { LoginCallout } from "@/components/login-callout"
 import { sidebarMenu } from "@/lib/sidebar-menu"
 
 export default function Home() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   return (
@@ -24,10 +26,17 @@ export default function Home() {
         <Sidebar items={sidebarMenu} isCollapsed={isSidebarCollapsed} hasSession={Boolean(session)} />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          {session ? (
+          <ProtectedShell
+            isLoading={status === "loading"}
+            isAuthenticated={Boolean(session)}
+            loadingView={<SessionLoading />}
+            unauthenticatedView={
+              <LoginCallout description="ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถจัดการข้อมูลจากเมนูด้านซ้ายได้" />
+            }
+          >
             <div className="space-y-6">
               <div>
-                <p className="text-2xl font-semibold text-slate-900">สวัสดี 👋 {session.user?.name}</p>
+                <p className="text-2xl font-semibold text-slate-900">สวัสดี 👋 {session?.user?.name}</p>
                 <p className="text-slate-600 mt-1">
                   เข้าสู่ระบบเรียบร้อยแล้ว สามารถเลือกเมนูทางซ้ายเพื่อเริ่มทำงานได้เลย
                 </p>
@@ -36,24 +45,11 @@ export default function Home() {
               <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
                 <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide">Access Token</p>
                 <code className="mt-2 block break-all rounded bg-slate-900/90 px-4 py-3 text-xs text-green-300">
-                  {session.accessToken ?? "ไม่มี token"}
+                  {session?.accessToken ?? "ไม่มี token"}
                 </code>
               </div>
             </div>
-          ) : (
-            <div className="flex h-full flex-col items-center justify-center text-center">
-              <p className="text-3xl font-semibold text-slate-900">เข้าสู่ระบบเพื่อใช้งาน Sale Manager</p>
-              <p className="mt-3 text-slate-600 max-w-lg">
-                ระบบจะเชื่อมต่อกับ Keycloak เพื่อยืนยันตัวตน เมื่อเข้าสู่ระบบแล้วคุณจะสามารถจัดการข้อมูลจากเมนูด้านซ้ายได้
-              </p>
-              <button
-                className="mt-8 rounded-md bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow hover:bg-blue-500"
-                onClick={() => signIn("keycloak")}
-              >
-                Login with Keycloak
-              </button>
-            </div>
-          )}
+          </ProtectedShell>
         </main>
       </div>
     </div>
