@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import { useState } from "react"
 import { Handle, Position, type NodeTypes } from "reactflow"
 
 const DEFAULT_AVATAR = "/avatars/default.png"
@@ -11,15 +12,18 @@ export type OrgNodeData = {
 }
 
 export function OrgNode({ data }: Readonly<{ data: OrgNodeData }>) {
+  const [src, setSrc] = useState(data.avatar ?? DEFAULT_AVATAR)
+
   return (
-    <div className="relative flex items-center gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-sm">
+    <div className="relative flex flex-col items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
       <Handle type="target" position={Position.Top} className="h-1.5! w-1.5! bg-blue-400!" />
       <Image
-        src={data.avatar ?? DEFAULT_AVATAR}
+        src={src}
         alt={data.label}
-        width={40}
-        height={40}
-        className="h-10 w-10 rounded-full border border-white shadow object-cover"
+        width={56}
+        height={56}
+        onError={() => setSrc(DEFAULT_AVATAR)}
+        className="h-14 w-14 rounded-full border-2 border-white shadow object-cover"
       />
       <span className="text-sm font-semibold text-slate-900">{data.label}</span>
       <Handle type="source" position={Position.Bottom} className="h-1.5! w-1.5! bg-blue-400!" />
