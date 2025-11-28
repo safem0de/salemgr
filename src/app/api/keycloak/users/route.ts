@@ -1,3 +1,5 @@
+"use server"
+
 import { NextResponse } from "next/server"
 import KeycloakAdminClient from "@keycloak/keycloak-admin-client"
 
@@ -25,10 +27,10 @@ async function getClient() {
 export async function GET() {
   try {
     const client = await getClient()
-    const roles = await client.roles.find()
-    return NextResponse.json({ roles })
+    const users = await client.users.find()
+    return NextResponse.json({ users })
   } catch (error) {
-    console.error("Error fetching roles", error)
+    console.error("Error fetching users", error)
     return NextResponse.json({ error: "Failed to connect Keycloak" }, { status: 500 })
   }
 }
